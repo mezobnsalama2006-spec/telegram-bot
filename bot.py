@@ -703,7 +703,6 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "admin_users": admin_users,
         "admin_stats": admin_panel,
     }
-
     if data in routes:
         await routes[data](update, context)
     elif data.startswith("product_"):

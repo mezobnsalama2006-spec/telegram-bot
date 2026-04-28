@@ -702,7 +702,7 @@ routes = {
     "admin_products": admin_products,
     "admin_users": admin_users,
     "admin_stats": admin_panel,
-}    }
+}
     if data in routes:
         await routes[data](update, context)
     elif data.startswith("product_"):

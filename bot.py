@@ -293,7 +293,6 @@ async def show_orders(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    
     await query.edit_message_text(
         "ℹ️ *Help & Support*\n━━━━━━━━━━━━━━━━━━\n\n"
         "🛍️ *How to buy:*\n1. Go to Products\n2. Select a product\n3. Confirm purchase\n\n"
@@ -485,6 +484,8 @@ async def start_add_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     product_id = int(query.data.split("_")[2])
     product = db.get_product(product_id)
+    # امسح اي state قديم وابدأ نضيف
+    context.user_data.clear()
     context.user_data['adding_item_to'] = product_id
     context.user_data['state'] = WAITING_ITEM_CONTENT
     await query.edit_message_text(
@@ -496,7 +497,6 @@ async def start_add_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("✅ Done Adding", callback_data=f"admin_product_{product_id}")],
             [InlineKeyboardButton("❌ Cancel", callback_data=f"admin_product_{product_id}")]]))
-    return WAITING_ITEM_CONTENT
 
 async def receive_item_content(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('state') != WAITING_ITEM_CONTENT:
@@ -504,9 +504,12 @@ async def receive_item_content(update: Update, context: ContextTypes.DEFAULT_TYP
     product_id = context.user_data.get('adding_item_to')
     if not product_id:
         return
-    content = update.message.text
+    content = update.message.text.strip()
+    if not content:
+        return
     item_id = db.add_item_to_product(product_id, content)
     product = db.get_product(product_id)
+    # State لازم يفضل زي ما هو عشان يستقبل items تانية - متمسحوش
     await update.message.reply_text(
         f"✅ *Item Added!*\n\n"
         f"📦 Product: *{product['name']}*\n"
@@ -549,7 +552,6 @@ async def delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     product_id = int(parts[3])
     db.delete_item(item_id)
     await query.answer("✅ Item deleted!", show_alert=True)
-    # Refresh manage items view
     query.data = f"manage_items_{product_id}"
     await manage_items(update, context)
 
@@ -571,25 +573,23 @@ async def delete_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start_add_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    context.user_data.clear()
+    context.user_data['new_product'] = {}
+    context.user_data['state'] = WAITING_PRODUCT_NAME
     await query.edit_message_text(
         "➕ *Add New Product*\n\nStep 1/3: Enter the *product name*:",
         parse_mode='Markdown',
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="admin_products")]]))
-    context.user_data['new_product'] = {}
-    context.user_data['state'] = WAITING_PRODUCT_NAME
-    return WAITING_PRODUCT_NAME
 
 async def get_product_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['new_product']['name'] = update.message.text
-    await update.message.reply_text("Step 2/3: Enter the *description*:", parse_mode='Markdown')
     context.user_data['state'] = WAITING_PRODUCT_DESC
-    return WAITING_PRODUCT_DESC
+    await update.message.reply_text("Step 2/3: Enter the *description*:", parse_mode='Markdown')
 
 async def get_product_desc(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['new_product']['description'] = update.message.text
-    await update.message.reply_text("Step 3/3: Enter the *price* (e.g. 9.99):", parse_mode='Markdown')
     context.user_data['state'] = WAITING_PRODUCT_PRICE
-    return WAITING_PRODUCT_PRICE
+    await update.message.reply_text("Step 3/3: Enter the *price* (e.g. 9.99):", parse_mode='Markdown')
 
 async def get_product_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -607,10 +607,8 @@ async def get_product_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown',
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("✅ Done", callback_data=f"admin_product_{product_id}")]]))
-        return WAITING_ITEM_CONTENT
     except ValueError:
         await update.message.reply_text("❌ Please enter a valid number (e.g. 9.99)")
-        return WAITING_PRODUCT_PRICE
 
 # ========================
 # ADMIN USERS
@@ -631,28 +629,29 @@ async def admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="admin_panel")]]))
 
 # ========================
-# HANDLE TEXT
+# HANDLE TEXT - المشكله كانت هنا
 # ========================
+
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get('state')
 
     if state == WAITING_PRODUCT_NAME:
-        return await get_product_name(update, context)
+        await get_product_name(update, context)
 
     elif state == WAITING_PRODUCT_DESC:
-        return await get_product_desc(update, context)
+        await get_product_desc(update, context)
 
     elif state == WAITING_PRODUCT_PRICE:
-        return await get_product_price(update, context)
+        await get_product_price(update, context)
+
+    elif state == WAITING_ITEM_CONTENT:
+        await receive_item_content(update, context)
 
     elif state == WAITING_PAYMENT_AMOUNT:
         await receive_payment_amount(update, context)
 
     elif state == WAITING_PAYMENT_PROOF:
         await update.message.reply_text("📸 Please send a *photo* of your receipt.", parse_mode='Markdown')
-
-    elif state == WAITING_ITEM_CONTENT:
-        await receive_item_content(update, context)
 
     elif state == WAITING_ADD_BALANCE_AMOUNT:
         try:
@@ -678,51 +677,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except ValueError:
             await update.message.reply_text("❌ Please enter a valid amount")
 
-    # ================= PRODUCT ADD FIX =================
-    if state == WAITING_PRODUCT_NAME:
-        return await get_product_name(update, context)
-
-    elif state == WAITING_PRODUCT_DESC:
-        return await get_product_desc(update, context)
-
-    elif state == WAITING_PRODUCT_PRICE:
-        return await get_product_price(update, context)
-
-    # ================= EXISTING LOGIC =================
-    elif state == WAITING_PAYMENT_AMOUNT:
-        await receive_payment_amount(update, context)
-
-    elif state == WAITING_PAYMENT_PROOF:
-        await update.message.reply_text("📸 Please send a *photo* of your receipt.", parse_mode='Markdown')
-
-    elif state == WAITING_ITEM_CONTENT:
-        await receive_item_content(update, context)
-
-    elif state == WAITING_ADD_BALANCE_AMOUNT:
-        try:
-            amount = float(update.message.text)
-            deposit_id = context.user_data.get('pending_deposit_id')
-            if deposit_id:
-                deposit = db.get_deposit(deposit_id)
-                db.approve_deposit(deposit_id, amount, update.effective_user.id)
-                new_balance = db.get_balance(deposit['user_id'])
-                try:
-                    await context.bot.send_message(
-                        chat_id=deposit['user_id'],
-                        text=f"✅ *Balance Added: ${amount:.2f}*\n💼 New balance: *${new_balance:.2f}*",
-                        parse_mode='Markdown', reply_markup=main_menu_keyboard(deposit['user_id']))
-                except: pass
-
-                await update.message.reply_text(
-                    f"✅ Deposit #{deposit_id} approved! Added ${amount:.2f}",
-                    reply_markup=admin_panel_keyboard()
-                )
-
-                context.user_data.pop('state', None)
-                context.user_data.pop('pending_deposit_id', None)
-
-        except ValueError:
-            await update.message.reply_text("❌ Please enter a valid amount")
 # ========================
 # CALLBACK ROUTER
 # ========================
@@ -730,6 +684,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
+
+    # لما الادمن يضغط اي زرار غير add item، امسح state الـ item content
+    if context.user_data.get('state') == WAITING_ITEM_CONTENT:
+        if not data.startswith("admin_product_"):
+            context.user_data.pop('state', None)
+            context.user_data.pop('adding_item_to', None)
 
     routes = {
         "main_menu": start,
@@ -759,7 +719,12 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("review_deposit_"):
         await review_deposit(update, context)
     elif data.startswith("admin_product_"):
+        # لما يضغط Done Adding يمسح الـ state
+        context.user_data.pop('state', None)
+        context.user_data.pop('adding_item_to', None)
         await admin_product_detail(update, context)
+    elif data.startswith("admin_add_product"):
+        await start_add_product(update, context)
     elif data.startswith("delete_product_"):
         await delete_product(update, context)
     elif data.startswith("add_item_"):
@@ -768,6 +733,7 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await manage_items(update, context)
     elif data.startswith("delete_item_"):
         await delete_item(update, context)
+
 # ========================
 # MAIN
 # ========================
@@ -775,31 +741,7 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
-    add_balance_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(add_balance_start, pattern="^add_balance$")],
-        states={
-            WAITING_PAYMENT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_payment_amount)],
-            WAITING_PAYMENT_PROOF: [MessageHandler(filters.PHOTO, receive_payment_proof)],
-        },
-        fallbacks=[CommandHandler("start", start)],
-        per_message=False
-    )
-
-    add_product_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(start_add_product, pattern="^admin_add_product$")],
-        states={
-            WAITING_PRODUCT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_product_name)],
-            WAITING_PRODUCT_DESC: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_product_desc)],
-            WAITING_PRODUCT_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_product_price)],
-            WAITING_ITEM_CONTENT: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_item_content)],
-        },
-        fallbacks=[CommandHandler("start", start)],
-        per_message=False
-    )
-
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(add_balance_conv)
-    app.add_handler(add_product_conv)
     app.add_handler(CallbackQueryHandler(callback_router))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     app.add_handler(MessageHandler(filters.PHOTO, receive_payment_proof))

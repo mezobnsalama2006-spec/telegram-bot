@@ -17,7 +17,7 @@ ADMIN_IDS = [
 # ========================
 PAYMENT_BYBIT= "496950466"
 PAYMENT_INSTAPAY = "01028749936"
-PAYMENT_binance = "1199904304"
+PAYMENT_BINANCE = "1199904304"
 
 # Support username
 SUPPORT_USERNAME = "@Mustafa_Bn_Salama"

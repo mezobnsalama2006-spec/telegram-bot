@@ -298,8 +298,7 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "ℹ️ *Help & Support*\n━━━━━━━━━━━━━━━━━━\n\n"
         "🛍️ *How to buy:*\n1. Go to Products\n2. Select a product\n3. Confirm purchase\n\n"
         "💰 *How to add balance:*\n1. Go to Add Balance\n2. Send payment\n3. Upload receipt\n4. Wait for approval\n\n"
-        "📞 *Contact Support:* `@KDB_store_Admin
-`",
+        "📞 *Contact Support:* `@KDB_store_Admin`",
         parse_mode='Markdown',
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back", callback_data="main_menu")]

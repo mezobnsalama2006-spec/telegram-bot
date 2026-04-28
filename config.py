@@ -3,7 +3,7 @@
 # ========================
 
 # Get this from @BotFather on Telegram
-BOT_TOKEN = "8759960592:AAELS-Aoh3NZc-B7zzDh-hYunjPRg0mHjos"
+BOT_TOKEN = "8759960592:AAHMD99wwGwiD5u1GTDXG0zZXjBpXWpjPBU"
 
 # Your Telegram user ID(s) - to get yours, message @userinfobot
 ADMIN_IDS = [

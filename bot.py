@@ -701,8 +701,19 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "admin_products": admin_products,
         "admin_users": admin_users,
         "admin_stats": admin_panel,
-        "admin_add_product": start_add_product,
-    }
+routes = {
+    "main_menu": start,
+    "products": show_products,
+    "wallet": show_wallet,
+    "add_balance": add_balance_start,
+    "my_orders": show_orders,
+    "help": show_help,
+    "admin_panel": admin_panel,
+    "admin_deposits": admin_deposits,
+    "admin_products": admin_products,
+    "admin_users": admin_users,
+    "admin_stats": admin_panel,
+}    }
     if data in routes:
         await routes[data](update, context)
     elif data.startswith("product_"):

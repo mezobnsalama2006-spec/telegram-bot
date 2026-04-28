@@ -15,9 +15,9 @@ ADMIN_IDS = [
 # PAYMENT INFO (shown to users when adding balance)
 # Edit these with your real payment details
 # ========================
-PAYMENT_BYBIT= "23213213"
+PAYMENT_BYBIT= "496950466"
 PAYMENT_INSTAPAY = "01028749936"
-PAYMENT_GEE = "xDSADAx"
+PAYMENT_binance = "1199904304"
 
 # Support username
 SUPPORT_USERNAME = "@Mustafa_Bn_Salama"

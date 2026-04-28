@@ -637,6 +637,45 @@ async def admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get('state')
 
+    if state == WAITING_PAYMENT_AMOUNT:
+        await receive_payment_amount(update, context)
+
+    elif state == WAITING_PAYMENT_PROOF:
+        await update.message.reply_text("📸 Please send a *photo* of your receipt.", parse_mode='Markdown')
+
+    elif state == WAITING_ITEM_CONTENT:
+        await receive_item_content(update, context)
+
+    elif state == WAITING_ADD_BALANCE_AMOUNT:
+        try:
+            amount = float(update.message.text)
+            deposit_id = context.user_data.get('pending_deposit_id')
+            if deposit_id:
+                deposit = db.get_deposit(deposit_id)
+                db.approve_deposit(deposit_id, amount, update.effective_user.id)
+                new_balance = db.get_balance(deposit['user_id'])
+
+                try:
+                    await context.bot.send_message(
+                        chat_id=deposit['user_id'],
+                        text=f"✅ *Balance Added: ${amount:.2f}*\n💼 New balance: *${new_balance:.2f}*",
+                        parse_mode='Markdown',
+                        reply_markup=main_menu_keyboard(deposit['user_id'])
+                    )
+                except:
+                    pass
+
+                await update.message.reply_text(
+                    f"✅ Deposit #{deposit_id} approved! Added ${amount:.2f}",
+                    reply_markup=admin_panel_keyboard()
+                )
+
+                context.user_data.pop('state', None)
+                context.user_data.pop('pending_deposit_id', None)
+
+        except ValueError:
+            await update.message.reply_text("❌ Please enter a valid amount")
+
     # ================= PRODUCT ADD FIX =================
     if state == WAITING_PRODUCT_NAME:
         return await get_product_name(update, context)

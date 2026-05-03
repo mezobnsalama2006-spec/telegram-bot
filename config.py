@@ -3,11 +3,11 @@
 # ========================
 
 # Get this from @BotFather on Telegram
-BOT_TOKEN = "8728088537:AAGT97N8wYV0UxqUf_DMMaUoPDXYQlyLy_E"
-
+import os
+BOT_TOKEN= os.getenv("BOT_TOKEN")
 # Your Telegram user ID(s) - to get yours, message @userinfobot
 ADMIN_IDS = [
-    7428181415,   # Replace with your Telegram ID
+    6098463726,   # Replace with your Telegram ID
     # Add more admin IDs here
 ]
 
@@ -20,5 +20,5 @@ PAYMENT_INSTAPAY = "01028749936"
 PAYMENT_BINANCE = "1199904304 .  422086209 "
 
 # Support username
-SUPPORT_USERNAME = "@KDB_store_Admin"
+SUPPORT_USERNAME = "@MezoStoreBotAdmin"
 

@@ -7,7 +7,7 @@ import os
 BOT_TOKEN= os.getenv("BOT_TOKEN")
 # Your Telegram user ID(s) - to get yours, message @userinfobot
 ADMIN_IDS = [
-    6098463726,   # Replace with your Telegram ID
+    8181457734,   # Replace with your Telegram ID
     # Add more admin IDs here
 ]
 
@@ -15,10 +15,10 @@ ADMIN_IDS = [
 # PAYMENT INFO (shown to users when adding balance)
 # Edit these with your real payment details
 # ========================
-PAYMENT_BYBIT= "496950466 .  546961050  "
-PAYMENT_INSTAPAY = "01028749936"
-PAYMENT_BINANCE = "1199904304 .  422086209 "
+PAYMENT_BYBIT= "496950466 ||  546961050  "
+PAYMENT_INSTAPAY = "01028749936 || 01019256224 "
+PAYMENT_BINANCE = "1199904304 ||  422086209 "
 
 # Support username
-SUPPORT_USERNAME = "@MezoStoreBotAdmin"
+SUPPORT_USERNAME = "@MezoStoreeAdmin"
 

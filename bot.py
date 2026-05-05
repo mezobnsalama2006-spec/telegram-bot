@@ -201,9 +201,10 @@ async def add_balance_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "➕ *Add Balance*\n━━━━━━━━━━━━━━━━━━\n\n"
         "💳 *Payment Methods:*\n"
+        
+        "• Binance: `       1199904304  || 422086209   `\n"
         "• ByBit: `         496950466   `\n "
-        "• Binance: `       1199904304   `\n"
-        "• InstaPay: `      01028749936   `\n"
+        "• InstaPay: `     01028749936 || 01019256224  `\n"
         "━━━━━━━━━━━━━━━━━━\n"
         "💵 *Step 1:* Enter the *amount* you sent (US . `25`):"
     )
@@ -297,7 +298,7 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "ℹ️ *Help & Support*\n━━━━━━━━━━━━━━━━━━\n\n"
         "🛍️ *How to buy:*\n1. Go to Products\n2. Select a product\n3. Confirm purchase\n\n"
         "💰 *How to add balance:*\n1. Go to Add Balance\n2. Send payment\n3. Upload receipt\n4. Wait for approval\n\n"
-        "📞 *Contact Support:* `@MezoStoreBotAdmin`",
+        "📞 *Contact Support:* `@MezoStoreeAdmin`",
         parse_mode='Markdown',
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back", callback_data="main_menu")]

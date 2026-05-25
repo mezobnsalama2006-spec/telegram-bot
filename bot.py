@@ -226,9 +226,9 @@ async def add_balance_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "➕ *Add Balance*\n━━━━━━━━━━━━━━━━━━\n\n"
         "💳 *Payment Methods:*\n"
         
-        "• Binance: `       1199904304  || 422086209   `\n"
-        "• ByBit: `         496950466   `\n "
-        "• InstaPay: `     01028749936 || 01019256224  `\n"
+        "• Binance: `       1199904304     `\n"
+       
+        "• VodoFon Cash: `     01028749936   `\n"
         "━━━━━━━━━━━━━━━━━━\n"
         "💵 *Step 1:* Enter the *amount* you sent (US . `25`):"
     )

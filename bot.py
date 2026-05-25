@@ -1,5 +1,5 @@
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, filters, ContextTypes, ConversationHandler
@@ -23,6 +23,17 @@ WAITING_ADD_BALANCE_AMOUNT = 7
 
 def is_admin(user_id):
     return user_id in ADMIN_IDS
+
+# ========================
+# PERSISTENT BOTTOM KEYBOARD
+# ========================
+
+def persistent_keyboard():
+    return ReplyKeyboardMarkup(
+        [["/start"]],
+        resize_keyboard=True,
+        is_persistent=True
+    )
 
 def main_menu_keyboard(user_id):
     keyboard = [
@@ -62,9 +73,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Choose an option below:"
     )
     if update.message:
-        await update.message.reply_text(text, parse_mode='Markdown', reply_markup=main_menu_keyboard(user.id))
+        await update.message.reply_text(
+            text,
+            parse_mode='Markdown',
+            reply_markup=persistent_keyboard()
+        )
+        await update.message.reply_text(
+            "📋 *Main Menu*",
+            parse_mode='Markdown',
+            reply_markup=main_menu_keyboard(user.id)
+        )
     else:
-        await update.callback_query.edit_message_text(text, parse_mode='Markdown', reply_markup=main_menu_keyboard(user.id))
+        await update.callback_query.edit_message_text(
+            text,
+            parse_mode='Markdown',
+            reply_markup=main_menu_keyboard(user.id)
+        )
 
 # ========================
 # PRODUCTS
@@ -485,7 +509,6 @@ async def start_add_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     product_id = int(query.data.split("_")[2])
     product = db.get_product(product_id)
-    # امسح اي state قديم وابدأ نضيف
     context.user_data.clear()
     context.user_data['adding_item_to'] = product_id
     context.user_data['state'] = WAITING_ITEM_CONTENT
@@ -510,7 +533,6 @@ async def receive_item_content(update: Update, context: ContextTypes.DEFAULT_TYP
         return
     item_id = db.add_item_to_product(product_id, content)
     product = db.get_product(product_id)
-    # State لازم يفضل زي ما هو عشان يستقبل items تانية - متمسحوش
     await update.message.reply_text(
         f"✅ *Item Added!*\n\n"
         f"📦 Product: *{product['name']}*\n"
@@ -630,7 +652,7 @@ async def admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="admin_panel")]]))
 
 # ========================
-# HANDLE TEXT - المشكله كانت هنا
+# HANDLE TEXT
 # ========================
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -686,11 +708,22 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
 
-    # لما الادمن يضغط اي زرار غير add item، امسح state الـ item content
+    # ======= FIX: مسح state الـ item content بس لو مش راح لصفحة المنتج =======
     if context.user_data.get('state') == WAITING_ITEM_CONTENT:
-        if not data.startswith("admin_product_"):
+        if not (data.startswith("admin_product_") or data.startswith("add_item_")):
             context.user_data.pop('state', None)
             context.user_data.pop('adding_item_to', None)
+
+    # ======= FIX: approve/reject يتنفذوا الأول قبل ما نعمل أي route check =======
+    if data.startswith("approve_deposit_"):
+        await approve_deposit(update, context)
+        return
+    if data.startswith("reject_deposit_"):
+        await reject_deposit(update, context)
+        return
+    if data.startswith("review_deposit_"):
+        await review_deposit(update, context)
+        return
 
     routes = {
         "main_menu": start,
@@ -713,14 +746,7 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await buy_product(update, context)
     elif data.startswith("confirm_buy_"):
         await confirm_buy(update, context)
-    elif data.startswith("approve_deposit_"):
-        await approve_deposit(update, context)
-    elif data.startswith("reject_deposit_"):
-        await reject_deposit(update, context)
-    elif data.startswith("review_deposit_"):
-        await review_deposit(update, context)
     elif data.startswith("admin_product_"):
-        # لما يضغط Done Adding يمسح الـ state
         context.user_data.pop('state', None)
         context.user_data.pop('adding_item_to', None)
         await admin_product_detail(update, context)

@@ -228,7 +228,7 @@ async def add_balance_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         "• Binance: `       1199904304     `\n"
        
-        "• VodoFon Cash: `     01028749936   `\n"
+        "• vodafone Cash: `     01028749936   `\n"
         "━━━━━━━━━━━━━━━━━━\n"
         "💵 *Step 1:* Enter the *amount* you sent (US . `25`):"
     )

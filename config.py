@@ -15,9 +15,8 @@ ADMIN_IDS = [
 # PAYMENT INFO (shown to users when adding balance)
 # Edit these with your real payment details
 # ========================
-PAYMENT_BYBIT= "496950466 ||  546961050  "
-PAYMENT_INSTAPAY = "01028749936 || 01019256224 "
-PAYMENT_BINANCE = "1199904304 ||  422086209 "
+PAYMENT_VodFon Cash = "01028749936  "
+PAYMENT_BINANCE = "1199904304 "
 
 # Support username
 SUPPORT_USERNAME = "@MezoStoreeAdmin"

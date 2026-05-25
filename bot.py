@@ -378,24 +378,45 @@ async def admin_deposits(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def review_deposit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
     if not is_admin(query.from_user.id):
         return
+
     deposit_id = int(query.data.split("_")[2])
     deposit = db.get_deposit(deposit_id)
+
     if not deposit:
         await query.answer("Not found!", show_alert=True)
         return
+
+    amount = deposit['amount']  # المبلغ اللي المستخدم بعته
+
     await context.bot.send_photo(
-        chat_id=query.from_user.id, photo=deposit['photo_file_id'],
-        caption=(f"💳 *Deposit #{deposit_id}*\n👤 {deposit['username']}\n🆔 `{deposit['user_id']}`\n\nChoose amount to approve:"),
+        chat_id=query.from_user.id,
+        photo=deposit['photo_file_id'],
+        caption=(
+            f"💳 *Deposit #{deposit_id}*\n"
+            f"👤 {deposit['username']}\n"
+            f"🆔 `{deposit['user_id']}`\n"
+            f"💵 Amount: *${amount}*\n\n"
+            f"Approve this deposit?"
+        ),
         parse_mode='Markdown',
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("$5", callback_data=f"approve_deposit_{deposit_id}_5"),
-             InlineKeyboardButton("$10", callback_data=f"approve_deposit_{deposit_id}_10"),
-             InlineKeyboardButton("$20", callback_data=f"approve_deposit_{deposit_id}_20")],
-            [InlineKeyboardButton("$50", callback_data=f"approve_deposit_{deposit_id}_50"),
-             InlineKeyboardButton("$100", callback_data=f"approve_deposit_{deposit_id}_100")],
-            [InlineKeyboardButton("❌ Reject", callback_data=f"reject_deposit_{deposit_id}")]]))
+            [
+                InlineKeyboardButton(
+                    "✅ Approve",
+                    callback_data=f"approve_deposit_{deposit_id}_{amount}"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "❌ Reject",
+                    callback_data=f"reject_deposit_{deposit_id}"
+                )
+            ]
+        ])
+    )
 
 async def approve_deposit(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query

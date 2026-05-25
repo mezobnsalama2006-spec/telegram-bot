@@ -15,7 +15,7 @@ ADMIN_IDS = [
 # PAYMENT INFO (shown to users when adding balance)
 # Edit these with your real payment details
 # ========================
-PAYMENT_VodFon Cash = "01028749936  "
+PAYMENT_BYBIT = "01028749936  "
 PAYMENT_BINANCE = "1199904304 "
 
 # Support username
